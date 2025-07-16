@@ -30,8 +30,8 @@ variable "desired_count" {
   default     = 1
   
   validation {
-    condition = var.desired_count >= 1 && var.desired_count <= 10
-    error_message = "The desired_count must be between 1 and 10."
+    condition = var.desired_count >= 0 && var.desired_count <= 10
+    error_message = "The desired_count must be between 0 and 10 (0 = hibernation mode)."
   }
 }
 

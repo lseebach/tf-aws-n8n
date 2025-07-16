@@ -5,7 +5,7 @@
 [![n8n](https://img.shields.io/badge/n8n-EA4B71?style=for-the-badge&logo=n8n&logoColor=white)](https://n8n.io/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 
-> **Production-ready n8n deployment on AWS with CloudFront CDN, ECS Fargate, and interactive version management**
+> **Production-ready n8n deployment on AWS with CloudFront CDN, ECS Fargate, and interactive image version management**
 
 This repository contains Terraform infrastructure code to deploy [n8n](https://n8n.io/) (a workflow automation platform) on AWS with global CDN distribution via CloudFront. The deployment includes automated version checking, security best practices, and cost optimization features.
 
@@ -32,6 +32,7 @@ graph TB
     CF --> ALB[⚖️ Application Load Balancer]
     ALB --> ECS[🐳 ECS Fargate Tasks]
     ECS --> EFS[💾 EFS Storage]
+    ECS --> RDS[🗃️ RDS PostgreSQL]
     
     subgraph "AWS Account"
         subgraph "VPC"
@@ -42,6 +43,9 @@ graph TB
                 ECS
                 EFS
             end
+            subgraph "Database Subnets"
+                RDS
+            end
         end
         CF
     end
@@ -50,6 +54,7 @@ graph TB
     style ALB fill:#4CAF50
     style ECS fill:#2196F3
     style EFS fill:#9C27B0
+    style RDS fill:#FF5722
 ```
 
 ### How It Works
@@ -59,6 +64,7 @@ graph TB
 3. **Application Load Balancer** distributes traffic to healthy n8n containers
 4. **ECS Fargate** runs n8n containers without server management
 5. **EFS Storage** provides persistent file storage for n8n workflows and data
+6. **RDS PostgreSQL** stores n8n workflows, executions, and user data
 
 ## 🚀 Quick Start
 
@@ -88,7 +94,9 @@ graph TB
    cp terraform.tfvars.example terraform.tfvars
    ```
 
-4. **Deploy with version checking** (recommended):
+4. **Deploy**:
+   
+   **Option A - Interactive deployment with version checking (recommended):**
    ```bash
    # Make the script executable (first time only)
    chmod +x deploy.sh
@@ -97,13 +105,13 @@ graph TB
    ./deploy.sh
    ```
    
-   **⚠️ Important**: Use `./deploy.sh` for version prompts, not `terraform apply`
-   
-   Or use traditional Terraform commands (no version checking):
+   **Option B - Traditional Terraform deployment:**
    ```bash
    terraform plan
    terraform apply
    ```
+   
+   **⚠️ Note**: Use `./deploy.sh` for n8n version management features
 
 5. **Access n8n**:
    After deployment, you'll get the CloudFront URL. n8n will be accessible at:
@@ -172,15 +180,34 @@ graph LR
 
 After deployment, you'll get:
 
-- `cloudfront_domain` - The CloudFront domain name (e.g., `d2ncljfl0rf1ql.cloudfront.net`)
+- `cloudfront_domain` - The CloudFront domain name (e.g., `xxxxxxxxxxx.cloudfront.net`)
 - `n8n_url` - The complete HTTPS URL for accessing n8n
 
 ## 🛠️ Maintenance
 
 ### Scaling
 
-To change the number of n8n instances:
+**Interactive Scaling (Recommended)**:
 ```bash
+# Make script executable (first time only)
+chmod +x scale.sh
+
+# Launch interactive scaling dashboard
+./scale.sh
+```
+
+Features:
+- Shows current status and costs
+- Hibernation mode (scale to 0) for cost savings
+- Interactive menu with progress indicators
+- Safe scaling with confirmation prompts
+
+**Manual Scaling**:
+```bash
+# Using deployment script
+./deploy.sh
+
+# Or using traditional Terraform
 terraform apply -var="desired_count=2"
 ```
 
@@ -204,7 +231,7 @@ flowchart TD
     I --> K
 ```
 
-Use the deployment script for interactive version management:
+**Interactive version management:**
 ```bash
 ./deploy.sh
 ```
@@ -215,25 +242,16 @@ This script will:
 - Prompt you to upgrade or stay with current version
 - Deploy your choice automatically
 
-#### Manual Updates
-To manually update the n8n version:
+**Manual updates:**
 1. Edit the `container_image` version in `n8n.tf`
-2. Run deployment:
-   ```bash
-   # For version checking
-   ./deploy.sh
-   
-   # Or traditional way (no version checking)
-   terraform plan
-   terraform apply
-   ```
+2. Deploy using either method above
 
 ### Factory Reset
 
 To completely reset n8n (removes all data):
 ```bash
 terraform destroy
-terraform apply
+# Then redeploy using either method above
 ```
 
 **⚠️ Warning**: This will delete all workflows, executions, and user data!
@@ -276,7 +294,8 @@ tf-aws-n8n/
 ├── 🏗️ n8n.tf                 # Main n8n module configuration
 ├── ☁️ cloudfront.tf          # CloudFront distribution
 ├── 🛡️ security.tf            # Security configurations
-└── 🚀 deploy.sh              # Deployment script with version checking
+├── 🚀 deploy.sh              # Deployment script with version checking
+└── 📏 scale.sh               # Interactive scaling script with hibernation
 ```
 
 ## 🚨 Important Notes
@@ -287,7 +306,8 @@ tf-aws-n8n/
 - **Backups**: Consider implementing backup strategies for production use
 - **SSL**: This setup uses CloudFront's default certificate. For custom domains, you'll need to configure SSL certificates
 - **Costs**: This setup incurs costs for ECS, EFS, ALB, and CloudFront usage (varies by region and usage)
-- **Version management**: Use `./deploy.sh` for interactive n8n version updates
+- **Version management**: Use `./deploy.sh` for interactive n8n version updates, or standard Terraform commands
+- **Scaling**: Use `./scale.sh` for interactive scaling with hibernation mode (scale to 0) for cost savings
 - **Security**: ALB is accessible via CloudFront only, direct access is restricted
 
 ## 🤝 Contributing
