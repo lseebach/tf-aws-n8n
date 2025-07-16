@@ -30,7 +30,7 @@ module "n8n" {
   
   # Container image specification
   # Using a pinned version for stability and predictable deployments
-  container_image = "n8nio/n8n:1.102.3"  # Pin to specific version
+  container_image = "n8nio/n8n:1.103.0"  # Pin to specific version
   
   # Application URL configuration
   # This tells n8n what URL it should expect to be accessed from
